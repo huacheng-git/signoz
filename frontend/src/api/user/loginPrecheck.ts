@@ -9,9 +9,7 @@ const loginPrecheck = async (
 ): Promise<SuccessResponse<PayloadProps> | ErrorResponse> => {
 	try {
 		const response = await axios.get(
-			`/loginPrecheck?email=${encodeURIComponent(
-				props.email,
-			)}&ref=${encodeURIComponent(window.location.href)}`,
+			`/loginPrecheck?ref=${encodeURIComponent(window.location.href)}`,
 		);
 
 		return {

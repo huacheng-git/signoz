@@ -19,6 +19,7 @@ import AppActions from 'types/actions';
 import { UPDATE_USER_IS_FETCH } from 'types/actions/app';
 import AppReducer from 'types/reducer/app';
 import { routePermission } from 'utils/permission';
+import loginPrecheckApi from 'api/user/loginPrecheck';
 
 import routes, {
 	LIST_LICENSES,
@@ -69,6 +70,29 @@ function PrivateRoute({ children }: PrivateRouteProps): JSX.Element {
 	const isLocalStorageLoggedIn =
 		getLocalStorageApi(LOCALSTORAGE.IS_LOGGED_IN) === 'true';
 
+	const onNextHandler = async (): Promise<void> => {
+		try {
+			const response = await loginPrecheckApi({email: ''});
+
+			if (response.statusCode === 200) {
+				const { sso, ssoUrl} = response.payload;
+
+				if (sso) {
+					window.location.href = ssoUrl || '';
+				} else {
+					history.push(ROUTES.LOGIN);
+				}
+			} else {
+				notifications.error({
+					message: t('invalid_config'),
+				});
+			}
+		} catch (e) {
+			console.log('failed to call precheck Api', e);
+			notifications.error({ message: t('unexpected_error') });
+		}
+	};
+	
 	const navigateToLoginIfNotLoggedIn = (isLoggedIn = isLoggedInState): void => {
 		dispatch({
 			type: UPDATE_USER_IS_FETCH,
@@ -78,7 +102,8 @@ function PrivateRoute({ children }: PrivateRouteProps): JSX.Element {
 		});
 
 		if (!isLoggedIn) {
-			history.push(ROUTES.LOGIN);
+			onNextHandler();
+			// history.push(ROUTES.LOGIN);
 		}
 	};
 
